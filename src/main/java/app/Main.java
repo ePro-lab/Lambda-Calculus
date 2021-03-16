@@ -30,8 +30,6 @@ public class Main {
                 System.out.println("output:");
                 System.out.println(input.toString());
 
-                System.out.println("output:");
-                System.out.println(input.toString());
             }catch (ArrayIndexOutOfBoundsException e) { //caused by illegal character input
                 System.out.println("illegal input");
             }
