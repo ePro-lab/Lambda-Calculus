@@ -6,38 +6,22 @@ import model.MultiBound;
 import model.SingleBound;
 import model.Term;
 import model.Variable;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class AntlrToTerm extends LambdaBaseVisitor<Term> {
-    private final ArrayList<String> errors;
-
-    public AntlrToTerm(ArrayList<String> errors){
-        this.errors = errors;
-    }
 
     @Override
     public Term visitMultiBound(LambdaParser.MultiBoundContext ctx) {
         Term term = new Term();
         MultiBound multiBound = new MultiBound();
 
-        Token errorToken = ctx.MULTIBOUND().getSymbol();
-        int errorLine = errorToken.getLine();
-        int errorColumn = errorToken.getCharPositionInLine() + 1;
-
         //add multiBound object to term
         String bound = ctx.MULTIBOUND().getText();
-        int[] charCount = new int[123];
         for(char c : bound.toCharArray()){
-            if(c>=97 && c<=122 && charCount[c] == 0) {                 //if the char is lowercase alphabetic between a and z and distinct
-                charCount[c]++;
+            if(c>=97 && c<=122)                  //if the char is lowercase alphabetic between a and z and distinct
                 multiBound.addVariable(new Variable(c));
-            }else
-                if(!(c == 'λ' | c == 'L' | c == '.' | c == ' '))       //ignore
-                    errors.add("FormatException at (" + errorLine + "," + errorColumn + ")");           //only on 'λxx.'
         }
         term.addBound(multiBound);
 
@@ -61,24 +45,11 @@ public class AntlrToTerm extends LambdaBaseVisitor<Term> {
     public Term visitSingleBound(LambdaParser.SingleBoundContext ctx) {
         Term term = new Term();
 
-        Token errorToken;
-        int errorLine;
-        int errorColumn;
-
         //add singleBound object to term
         List<TerminalNode> singleBounds = ctx.SINGLEBOUND();
-        int[] charCount = new int[123];
        for(TerminalNode node : singleBounds){
            char charAt = node.getText().toCharArray()[1];
-           errorToken = node.getSymbol();
-           errorLine = errorToken.getLine();
-           errorColumn = errorToken.getCharPositionInLine() + 1;
-           if(charCount[charAt] == 0) {
-               charCount[charAt]++;
-               term.addBound(new SingleBound(new Variable(charAt)));
-           }else{
-               errors.add("FormatException at (" + errorLine + "," + errorColumn + ")");        //only on 'λx.λx.'
-           }
+           term.addBound(new SingleBound(new Variable(charAt)));
        }
 
         //add (VARIABLE|term)+ objects to term

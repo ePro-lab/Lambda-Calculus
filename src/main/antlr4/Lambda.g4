@@ -7,7 +7,7 @@ input: (term|VARIABLE)+ EOF
 term: LPAREN (SINGLEBOUND)+ (VARIABLE|term)+ RPAREN         #SingleBound
     | LPAREN  MULTIBOUND (VARIABLE|term)+ RPAREN            #MultiBound
     | LPAREN (term)+ RPAREN                                 #TermOnly
-    | LPAREN (term)+ (VARIABLE)+ RPAREN                     #TermVariable   //(term|variable)+ ?
+    | LPAREN (term|VARIABLE)+ RPAREN                        #TermVariable
     | LPAREN VARIABLE (VARIABLE)+ RPAREN                    #Variables
     ;
 

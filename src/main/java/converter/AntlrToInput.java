@@ -5,16 +5,13 @@ import antlr.LambdaParser;
 import model.Input;
 import model.Variable;
 
-import java.util.ArrayList;
-
 public class AntlrToInput extends LambdaBaseVisitor<Input> {
-    ArrayList<String> errors;
 
     @Override
     public Input visitInput(LambdaParser.InputContext ctx) {
         Input input = new Input();
-        errors = new ArrayList<>();
-        AntlrToTerm termVisitor = new AntlrToTerm(errors);          //a helper visitor for transforming each subtree into a term object
+
+        AntlrToTerm termVisitor = new AntlrToTerm();          //a helper visitor for transforming each subtree into a term object
         for(int i=0; i<ctx.getChildCount(); i++){
             if(i == ctx.getChildCount() -1) {
                 //last child of the start symbol input is EOF
@@ -26,9 +23,5 @@ public class AntlrToInput extends LambdaBaseVisitor<Input> {
         }
 
         return input;
-    }
-
-    public ArrayList<String> getErrors(){
-        return errors;
     }
 }
