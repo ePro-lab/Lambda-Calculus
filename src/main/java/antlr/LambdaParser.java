@@ -2,8 +2,11 @@ package antlr;// Generated from C:/Users/Michael/IdeaProjects/Lambda-Calculus/sr
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
 import java.util.List;
+import java.util.Iterator;
+import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class LambdaParser extends Parser {
@@ -320,7 +323,7 @@ public class LambdaParser extends Parser {
 		enterRule(_localctx, 2, RULE_term);
 		int _la;
 		try {
-			setState(63);
+			setState(58);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,11,_ctx) ) {
 			case 1:
@@ -445,35 +448,35 @@ public class LambdaParser extends Parser {
 				{
 				setState(42);
 				match(LPAREN);
-				setState(44); 
+				setState(45); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
-					{
-					setState(43);
-					term();
+					setState(45);
+					_errHandler.sync(this);
+					switch (_input.LA(1)) {
+					case LPAREN:
+						{
+						setState(43);
+						term();
+						}
+						break;
+					case VARIABLE:
+						{
+						setState(44);
+						match(VARIABLE);
+						}
+						break;
+					default:
+						throw new NoViableAltException(this);
 					}
 					}
-					setState(46); 
+					setState(47); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
-				} while ( _la==LPAREN );
-				setState(49); 
-				_errHandler.sync(this);
-				_la = _input.LA(1);
-				do {
-					{
-					{
-					setState(48);
-					match(VARIABLE);
-					}
-					}
-					setState(51); 
-					_errHandler.sync(this);
-					_la = _input.LA(1);
-				} while ( _la==VARIABLE );
-				setState(53);
+				} while ( _la==VARIABLE || _la==LPAREN );
+				setState(49);
 				match(RPAREN);
 				}
 				break;
@@ -481,25 +484,25 @@ public class LambdaParser extends Parser {
 				_localctx = new VariablesContext(_localctx);
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(55);
+				setState(50);
 				match(LPAREN);
-				setState(56);
+				setState(51);
 				match(VARIABLE);
-				setState(58); 
+				setState(53); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
 					{
-					setState(57);
+					setState(52);
 					match(VARIABLE);
 					}
 					}
-					setState(60); 
+					setState(55); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				} while ( _la==VARIABLE );
-				setState(62);
+				setState(57);
 				match(RPAREN);
 				}
 				break;
@@ -517,26 +520,25 @@ public class LambdaParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\nD\4\2\t\2\4\3\t"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\n?\4\2\t\2\4\3\t"+
 		"\3\3\2\3\2\6\2\t\n\2\r\2\16\2\n\3\2\3\2\3\3\3\3\6\3\21\n\3\r\3\16\3\22"+
 		"\3\3\3\3\6\3\27\n\3\r\3\16\3\30\3\3\3\3\3\3\3\3\3\3\6\3 \n\3\r\3\16\3"+
-		"!\3\3\3\3\3\3\6\3\'\n\3\r\3\16\3(\3\3\3\3\3\3\3\3\6\3/\n\3\r\3\16\3\60"+
-		"\3\3\6\3\64\n\3\r\3\16\3\65\3\3\3\3\3\3\3\3\3\3\6\3=\n\3\r\3\16\3>\3\3"+
-		"\5\3B\n\3\3\3\2\2\4\2\4\2\2\2P\2\b\3\2\2\2\4A\3\2\2\2\6\t\5\4\3\2\7\t"+
-		"\7\3\2\2\b\6\3\2\2\2\b\7\3\2\2\2\t\n\3\2\2\2\n\b\3\2\2\2\n\13\3\2\2\2"+
-		"\13\f\3\2\2\2\f\r\7\2\2\3\r\3\3\2\2\2\16\20\7\7\2\2\17\21\7\4\2\2\20\17"+
-		"\3\2\2\2\21\22\3\2\2\2\22\20\3\2\2\2\22\23\3\2\2\2\23\26\3\2\2\2\24\27"+
-		"\7\3\2\2\25\27\5\4\3\2\26\24\3\2\2\2\26\25\3\2\2\2\27\30\3\2\2\2\30\26"+
-		"\3\2\2\2\30\31\3\2\2\2\31\32\3\2\2\2\32B\7\b\2\2\33\34\7\7\2\2\34\37\7"+
-		"\5\2\2\35 \7\3\2\2\36 \5\4\3\2\37\35\3\2\2\2\37\36\3\2\2\2 !\3\2\2\2!"+
-		"\37\3\2\2\2!\"\3\2\2\2\"#\3\2\2\2#B\7\b\2\2$&\7\7\2\2%\'\5\4\3\2&%\3\2"+
-		"\2\2\'(\3\2\2\2(&\3\2\2\2()\3\2\2\2)*\3\2\2\2*+\7\b\2\2+B\3\2\2\2,.\7"+
-		"\7\2\2-/\5\4\3\2.-\3\2\2\2/\60\3\2\2\2\60.\3\2\2\2\60\61\3\2\2\2\61\63"+
-		"\3\2\2\2\62\64\7\3\2\2\63\62\3\2\2\2\64\65\3\2\2\2\65\63\3\2\2\2\65\66"+
-		"\3\2\2\2\66\67\3\2\2\2\678\7\b\2\28B\3\2\2\29:\7\7\2\2:<\7\3\2\2;=\7\3"+
-		"\2\2<;\3\2\2\2=>\3\2\2\2><\3\2\2\2>?\3\2\2\2?@\3\2\2\2@B\7\b\2\2A\16\3"+
-		"\2\2\2A\33\3\2\2\2A$\3\2\2\2A,\3\2\2\2A9\3\2\2\2B\5\3\2\2\2\16\b\n\22"+
-		"\26\30\37!(\60\65>A";
+		"!\3\3\3\3\3\3\6\3\'\n\3\r\3\16\3(\3\3\3\3\3\3\3\3\3\3\6\3\60\n\3\r\3\16"+
+		"\3\61\3\3\3\3\3\3\3\3\6\38\n\3\r\3\16\39\3\3\5\3=\n\3\3\3\2\2\4\2\4\2"+
+		"\2\2K\2\b\3\2\2\2\4<\3\2\2\2\6\t\5\4\3\2\7\t\7\3\2\2\b\6\3\2\2\2\b\7\3"+
+		"\2\2\2\t\n\3\2\2\2\n\b\3\2\2\2\n\13\3\2\2\2\13\f\3\2\2\2\f\r\7\2\2\3\r"+
+		"\3\3\2\2\2\16\20\7\7\2\2\17\21\7\4\2\2\20\17\3\2\2\2\21\22\3\2\2\2\22"+
+		"\20\3\2\2\2\22\23\3\2\2\2\23\26\3\2\2\2\24\27\7\3\2\2\25\27\5\4\3\2\26"+
+		"\24\3\2\2\2\26\25\3\2\2\2\27\30\3\2\2\2\30\26\3\2\2\2\30\31\3\2\2\2\31"+
+		"\32\3\2\2\2\32=\7\b\2\2\33\34\7\7\2\2\34\37\7\5\2\2\35 \7\3\2\2\36 \5"+
+		"\4\3\2\37\35\3\2\2\2\37\36\3\2\2\2 !\3\2\2\2!\37\3\2\2\2!\"\3\2\2\2\""+
+		"#\3\2\2\2#=\7\b\2\2$&\7\7\2\2%\'\5\4\3\2&%\3\2\2\2\'(\3\2\2\2(&\3\2\2"+
+		"\2()\3\2\2\2)*\3\2\2\2*+\7\b\2\2+=\3\2\2\2,/\7\7\2\2-\60\5\4\3\2.\60\7"+
+		"\3\2\2/-\3\2\2\2/.\3\2\2\2\60\61\3\2\2\2\61/\3\2\2\2\61\62\3\2\2\2\62"+
+		"\63\3\2\2\2\63=\7\b\2\2\64\65\7\7\2\2\65\67\7\3\2\2\668\7\3\2\2\67\66"+
+		"\3\2\2\289\3\2\2\29\67\3\2\2\29:\3\2\2\2:;\3\2\2\2;=\7\b\2\2<\16\3\2\2"+
+		"\2<\33\3\2\2\2<$\3\2\2\2<,\3\2\2\2<\64\3\2\2\2=\5\3\2\2\2\16\b\n\22\26"+
+		"\30\37!(/\619<";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
