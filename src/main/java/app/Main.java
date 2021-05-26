@@ -5,9 +5,11 @@ import antlr.LambdaParser;
 import converter.AntlrToInput;
 import model.Input;
 
+import operation.BetaReduction;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 public class Main {
@@ -30,8 +32,11 @@ public class Main {
                 System.out.println("output:");
                 System.out.println(input.toString());
 
-            }catch (ArrayIndexOutOfBoundsException e) { //caused by illegal character input
-                System.out.println("illegal input");
+                System.out.println("beta");
+                BetaReduction.betaReduction(input);
+
+            } catch (RecognitionException e) {
+                e.printStackTrace();
             }
         }
     }

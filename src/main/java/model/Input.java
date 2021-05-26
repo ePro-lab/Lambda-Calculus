@@ -3,7 +3,7 @@ package model;
 import java.util.ArrayList;
 
 public class Input{
-    private final ArrayList<LambdaExpression> inputList;
+    private ArrayList<LambdaExpression> inputList;
 
     public Input() {
         inputList = new ArrayList<>();
@@ -43,5 +43,34 @@ public class Input{
 
     public void removeInputListIndex(int i){
         inputList.remove(i);
+    }
+
+    public void replaceInputList(ArrayList<LambdaExpression> newList) {
+        inputList = newList;
+    }
+
+    public boolean containsOnlyTerms(){
+        for (LambdaExpression lambdaExpression : inputList)
+            if (!(lambdaExpression instanceof Term))
+                return false;
+        return true;
+    }
+
+    //((λx.xz)(x(λx.xz)))
+    //should only be used if containsOnlyTerms returns true
+    public void removeParentheses(){
+        if(inputList.size() == 1 && inputList.get(0) instanceof Term)
+            inputList = ((Term) inputList.get(0)).getContent();
+        else {
+            ArrayList<LambdaExpression> tmp = new ArrayList<>();
+            for (LambdaExpression t : inputList) {
+                System.out.println(t);
+                if (t instanceof Term && ((Term) t).getContentSize() == 1 && ((Term) t).getContentIndex(0) instanceof Term) {
+                    tmp.addAll(((Term) t).getContent());
+                } else
+                    tmp.add(t);
+            }
+            inputList = tmp;
+        }
     }
 }
