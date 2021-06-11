@@ -10,14 +10,10 @@ public class Input{
     }
 
     public void addTerm(Term term){
-
-        System.out.println("add term to input");
         inputList.add(term);
     }
 
     public void addVariable(Variable variable){
-
-        System.out.println("add variable to input");
         inputList.add(variable);
     }
 
@@ -64,7 +60,6 @@ public class Input{
         else {
             ArrayList<LambdaExpression> tmp = new ArrayList<>();
             for (LambdaExpression t : inputList) {
-                System.out.println(t);
                 if (t instanceof Term && ((Term) t).getContentSize() == 1 && ((Term) t).getContentIndex(0) instanceof Term) {
                     tmp.addAll(((Term) t).getContent());
                 } else

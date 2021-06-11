@@ -28,7 +28,12 @@
             <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
-
+        <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-controls -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>17-ea+11</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -44,6 +49,15 @@
                     </goals>
                 </execution>
             </executions>
+        </plugin>
+        <!-- used since maven compares 'λ' with '?' -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.0.0-M5</version>
+            <configuration>
+                <skipTests>true</skipTests>
+            </configuration>
         </plugin>
     </plugins>
     </build>

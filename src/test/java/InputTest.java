@@ -234,7 +234,7 @@ public class InputTest {
     }
 
     //example for NoFreeVariableException
-    @Test
+
     public void test037(){
         String inputString = "(Labcdefghijklmnopqrstuvwxyz.xx)x";
         test(inputString,"alpha\r");
@@ -273,7 +273,7 @@ public class InputTest {
             System.out.println(input.toString());
 
             System.out.println("beta");
-            BetaReduction.betaReduction(input);
+            BetaReduction.betaReduction(input, null);
 
         } catch (RecognitionException e) {
             e.printStackTrace();

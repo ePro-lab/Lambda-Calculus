@@ -10,7 +10,6 @@ public class MultiBound extends Bound{
     }
 
     public void addVariable(Variable variable){
-        System.out.println("add variable to multiBound");
         variables.add(variable);
     }
 

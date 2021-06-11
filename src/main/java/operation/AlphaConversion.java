@@ -32,24 +32,17 @@ public class AlphaConversion {
             throw new NoFreeVariableException(term);
         }
 
-        boolean changedFirst = false;
         Variable convert = new Variable(newChar);
         for(int i =0; i<term.getContentSize(); i++){
             if(term.getContentIndex(i) instanceof MultiBound){
                 for(int j=0; j<((MultiBound) term.getContentIndex(i)).getVariablesSize(); j++){
-                    if(((MultiBound) term.getContentIndex(i)).getVariablesIndex(j).compare(variable)) {
+                    if(((MultiBound) term.getContentIndex(i)).getVariablesIndex(j).compare(variable))
                         ((MultiBound) term.getContentIndex(i)).setVariablesIndex(j, convert);
-                        if(i==0)
-                            changedFirst = true;
-                    }
                 }
             }
             if(term.getContentIndex(i) instanceof SingleBound){
-                if(((SingleBound) term.getContentIndex(i)).getVariable().compare(variable)) {
+                if(((SingleBound) term.getContentIndex(i)).getVariable().compare(variable))
                     ((SingleBound) term.getContentIndex(i)).setVariable(convert);
-                    if(i==0)
-                        changedFirst = true;
-                }
             }
             if(term.getContentIndex(i) instanceof Variable){
                 if(((Variable) term.getContentIndex(i)).compare(variable)){
@@ -57,8 +50,6 @@ public class AlphaConversion {
                 }
             }
         }
-        if(changedFirst)
-            return boundVariables.get(0);
         return new Variable(newChar);
     }
 }

@@ -2,7 +2,9 @@ package app;
 
 import antlr.LambdaLexer;
 import antlr.LambdaParser;
+import app.gui.Gui;
 import converter.AntlrToInput;
+import javafx.scene.control.Accordion;
 import model.Input;
 
 import operation.BetaReduction;
@@ -13,32 +15,34 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 public class Main {
+
     public static void main(String[] args){
+        Gui.startGui(args);
+    }
+
+    public static Accordion compute(String inputString){
+        Accordion out = new Accordion();
         //ANTLR
-        if(args.length != 0)
-            System.err.println("No input string");
+        if(inputString.length() == 0)
+            System.out.println("\u001B[34m" + "No Input " + "\u001B[0m");
         else{
             try {
-                String inputString = "(Lxzu.xxuzu)t(Lp.p)f";
 
                 LambdaParser lambdaParser = getParser(inputString);
-
                 //build ParseTree from start symbol 'input'
                 ParseTree antlrAST = lambdaParser.input();
                 //create visitor for converting the ParseTree into Input/Term object
                 AntlrToInput inputVisitor = new AntlrToInput();
                 Input input = inputVisitor.visit(antlrAST);
 
-                System.out.println("output:");
-                System.out.println(input.toString());
-
-                System.out.println("beta");
-                BetaReduction.betaReduction(input);
+                System.out.println(input);
+                BetaReduction.betaReduction(input, out);
 
             } catch (RecognitionException e) {
                 e.printStackTrace();
             }
         }
+        return out;
     }
 
     private static LambdaParser getParser(String inputString){
