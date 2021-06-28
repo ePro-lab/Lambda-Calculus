@@ -32,7 +32,7 @@ public class BetaReduction {
                                 TitledPane pane = out.getPanes().get(out.getPanes().size() - 1);
                                 pane.setContent(new Text("alpha conversion:\n" + "change bound " + insert + " to " + tmp + " in " + oldTerm));
                                 System.out.println(" 1 beta reduction:\ninsert " + insert + " into " + term);
-                                out.getPanes().add(new TitledPane(input.toString(), new Text("beta reduction:\ninsert " + insert + " into " + term)));
+                                writeInOut(input, term, insert, out);
                             }
                         }
                         if (((Variable) term.getContentIndex(j)).compare(v)) {           //if variable matches lambda bound variable replace
@@ -83,7 +83,7 @@ public class BetaReduction {
                                             TitledPane pane = out.getPanes().get(out.getPanes().size() - 1);
                                             pane.setContent(new Text("alpha conversion:\nchange bound " + insert + " to " + newVariable + " in " + oldTerm));
                                             System.out.println(" 2 beta reduction:\ninsert " + insert + " into " + term);
-                                            out.getPanes().add(new TitledPane(input.toString(), new Text("beta reduction:\ninsert " + insert + " into " + term)));
+                                            writeInOut(input, term, insert, out);
                                         }
                                     }
                             }
@@ -147,122 +147,82 @@ public class BetaReduction {
             LambdaExpression current;                                       //replacement
 
             int lastTermIndex = 0;
-            for (int i = 1; i < input.getInputListSize() && !(input.getInputListIndex(0) instanceof Variable); i++) {
-                current = input.getInputListIndex(i);
-                if (previous != null) {
-                    //in testcase out is null
-                    if(out != null) {
-                        TextFlow textFlow = new TextFlow();
-                        textFlow.getChildren().addAll(new Text("beta reduction:"), new Text(System.lineSeparator()));
-                        String text = input.toString();
+            if(!(input.getInputListIndex(0) instanceof Variable)) {
+                for (int i = 1; i < input.getInputListSize() && !(input.getInputListIndex(0) instanceof Variable); i++) {
+                    current = input.getInputListIndex(i);
+                    if (previous != null) {
+                        //in testcase out is null
+                        if (out != null)
+                            writeInOut(input, previous, current, out);
+                    }
+                    if (previous instanceof Term && !(((Term) previous).getContentIndex(0) instanceof Variable)) {  //check if previous is type Term and does not start with a Variable
+                        if (((Term) previous).getContentIndex(0) instanceof Term) {   //if first LambdaExpression of term is a Term, go inside
+                            checkInnerTerm(input, (Term) previous, lastTermIndex, 0, out);
+                            if (input.getInputListSize() == 2 && input.getInputListIndex(0) instanceof Term && ((Term) input.getInputListIndex(0)).containsNoVariableAtIndexZero()) {
+                                i = 0;
+                                previous = input.getInputListIndex(0);
+                            }
+                        } else {
+                            input.setInputListIndex(lastTermIndex, BetaReduction.reduce((Term) previous, current, input, out));
+                            input.removeInputListIndex(i);
+                            //'current' has been deleted, so index i will not be 'next' LambdaExpression
+                            i=0;
+                            //check if returned 'term' is size 1, if so replace with content of term
+                            if (((Term) input.getInputListIndex(lastTermIndex)).getContentSize() == 1)
+                                input.setInputListIndex(lastTermIndex, ((Term) input.getInputListIndex(lastTermIndex)).getContentIndex(0));
+                            else if (input.containsOnlyTerms() && input.getInputListIndex(0) instanceof Term && ((Term) input.getInputListIndex(0)).getContentIndex(0) instanceof Term) {
+                                input.removeParentheses();
+                                previous = input.getInputListIndex(lastTermIndex);
+                            }
 
-                        Text previousText = new Text(text.substring(0, previous.toString().length()));
-                        previousText.setFill(Color.GREEN);
-                        text = text.substring(previous.toString().length());
-
-                        Text currentText = new Text(text.substring(0, current.toString().length()));
-                        currentText.setFill(Color.RED);
-                        text = text.substring(current.toString().length());
-
-                        Text post = new Text(text);
-                        Text replaceText1 = null;
-                        if(previous instanceof Term){
-                            if(((Term) previous).containsBound()) {
-                                LambdaExpression le = ((Term) previous).getContentIndex(0);
-                                if(le instanceof SingleBound)
-                                    replaceText1 = new Text("replace all " + ((SingleBound) le).getVariable() + " in ");
-                                if(le instanceof MultiBound)
-                                    replaceText1 = new Text("replace all " + ((MultiBound) le).getVariables().get(0) + " in ");
+                            /* check if 'input' is size 1
+                             * AND
+                             ** first LE in 'input' is type Variable
+                             ** OR
+                             *** first LE in 'input' is type Term
+                             *** AND
+                             *** term is size 1
+                             ** OR
+                             ** first LE in 'input' is Term and its first LE is type Variable
+                             ** OR
+                             *** first LE in 'input' is term and is size > 1
+                             *** AND
+                             *** first LE of term is type Term
+                             *** And
+                             *** second LE of term is type Variable
+                             */
+                            if (input.getInputListSize() == 1 &&
+                                    ((input.getInputListIndex(0) instanceof Variable || (input.getInputListIndex(0) instanceof Term && (((Term) input.getInputListIndex(0)).getContentSize() == 1))) ||
+                                            ((Term) input.getInputListIndex(0)).getContentIndex(0) instanceof Variable ||
+                                            ((((Term) input.getInputListIndex(0)).getContentSize() > 1) && (((Term) input.getInputListIndex(0)).getContentIndex(0) instanceof Term) && ((Term) input.getInputListIndex(0)).getContentIndex(1) instanceof Variable))) {
+                                input.replaceInputList(((Term) previous).getContent());
+                                previous = input.getInputListIndex(0);
+                                i = 0;
                             }
                         }
-                        Text replaceText2 = new Text(previousText.getText());
-                        replaceText2.setFill(Color.GREEN);
-                        Text replaceText3 = new Text(" with ");
-                        Text replaceText4 = new Text(currentText.getText());
-                        replaceText4.setFill(Color.RED);
-
-                        textFlow.getChildren().addAll(previousText, currentText, post,
-                                new Text(System.lineSeparator()), replaceText1, replaceText2, replaceText3,replaceText4);
-
-                        if(out.getPanes().size() == 0)
-                            out.getPanes().add(new TitledPane(input.toString(), textFlow));
-                        else
-                        if(!out.getPanes().get(out.getPanes().size()-1).getText().equals(input.toString()))
-                            out.getPanes().add(new TitledPane(input.toString(), textFlow));
-                        else
-                            out.getPanes().get(out.getPanes().size()-1).setContent(new Text("beta reduction:\ninsert " + current + " into " + previous));
+                        System.out.println(input);
+                    } else {
+                        //found Variable at index 0 of the Term
+                        lastTermIndex = i;
+                        previous = current;
+                        if (previous instanceof Term) {
+                            checkInnerTerm(input, (Term) previous, lastTermIndex, 0, out);
+                        }
                     }
                 }
-                if (previous instanceof Term && !(((Term) previous).getContentIndex(0) instanceof Variable)) {  //check if previous is type Term and does not start with a Variable
-                    if(((Term) previous).getContentIndex(0) instanceof Term){   //if first LambdaExpression of term is a Term, go inside
-                        checkInnerTerm(input, (Term) previous, lastTermIndex,0, out);
-                        if(input.getInputListSize() == 2 && input.getInputListIndex(0) instanceof Term && ((Term) input.getInputListIndex(0)).containsNoVariableAtIndexZero()) {
-                            i = 0;
-                            previous = input.getInputListIndex(0);
-                        }
-                    }
-                    else {
-                        input.setInputListIndex(lastTermIndex, BetaReduction.reduce((Term) previous, current, input, out));
-                        input.removeInputListIndex(i);
-                        //'current' has been deleted, so index i will not be 'next' LambdaExpression
-                        i--;
-                        //check if returned 'term' is size 1, if so replace with content of term
-                        if(((Term) input.getInputListIndex(lastTermIndex)).getContentSize() == 1)
-                            input.setInputListIndex(lastTermIndex, ((Term) input.getInputListIndex(lastTermIndex)).getContentIndex(0));
-                        else
-                        if(input.containsOnlyTerms() && input.getInputListIndex(0) instanceof Term && ((Term) input.getInputListIndex(0)).getContentIndex(0) instanceof Term) {
-                            input.removeParentheses();
-                            previous = input.getInputListIndex(lastTermIndex);
-                        }
 
-                        /* check if 'input' is size 1
-                         * AND
-                         ** first LE in 'input' is type Variable
-                         ** OR
-                         *** first LE in 'input' is type Term
-                         *** AND
-                         *** term is size 1
-                         ** OR
-                         ** first LE in 'input' is Term and its first LE is type Variable
-                         ** OR
-                         *** first LE in 'input' is term and is size > 1
-                         *** AND
-                         *** first LE of term is type Term
-                         *** And
-                         *** second LE of term is type Variable
-                         */
-                        if (input.getInputListSize() == 1 &&
-                                ((input.getInputListIndex(0) instanceof Variable || (input.getInputListIndex(0) instanceof Term && (((Term) input.getInputListIndex(0)).getContentSize() == 1))) ||
-                                        ((Term) input.getInputListIndex(0)).getContentIndex(0) instanceof Variable ||
-                                        ((((Term) input.getInputListIndex(0)).getContentSize() > 1) && (((Term) input.getInputListIndex(0)).getContentIndex(0) instanceof Term) && ((Term) input.getInputListIndex(0)).getContentIndex(1) instanceof Variable))){
-                            input.replaceInputList(((Term) previous).getContent());
-                            previous = input.getInputListIndex(0);
-                            i = 0;
-                        }
-                    }
-                    System.out.println(input);
-                }else
-                {
-                    //found Variable at index 0 of the Term
-                    lastTermIndex = i;
-                    previous = current;
-                    if(previous instanceof Term ) {
-                        checkInnerTerm(input, (Term) previous, lastTermIndex,0, out);
-                    }
-                }
-            }
+                //check inner terms
+                for (int i = 0; i < input.getInputListSize(); i++)
+                    if (input.getInputListIndex(i) instanceof Term)
+                        if (((Term) input.getInputListIndex(i)).containsTerm())
+                            checkInnerTerm(input, (Term) input.getInputListIndex(i), i, 0, out);
 
-            //check inner terms
-            for(int i=0; i<input.getInputListSize(); i++)
-                if(input.getInputListIndex(i) instanceof Term)
-                    if(((Term) input.getInputListIndex(i)).containsTerm())
-                        checkInnerTerm(input, (Term) input.getInputListIndex(i), i,0, out);
-
-            //check for more beta
-            for(int i=0; i<input.getInputListSize(); i++){
-                if(input.getInputListIndex(i) instanceof Term && ((Term) input.getInputListIndex(i)).containsTermAtIndexZero()) {
-                    checkInnerTerm(input, (Term) input.getInputListIndex(i), i,0, out);
-                    i=0;
+                //check for more beta
+                for (int i = 0; i < input.getInputListSize(); i++) {
+                    if (input.getInputListIndex(i) instanceof Term && ((Term) input.getInputListIndex(i)).containsTermAtIndexZero()) {
+                        checkInnerTerm(input, (Term) input.getInputListIndex(i), i, 0, out);
+                        i = 0;
+                    }
                 }
             }
 
@@ -277,8 +237,9 @@ public class BetaReduction {
                     out.getPanes().add(new TitledPane(input.toString(), new Text("end")));
             }
             System.out.println(input);
-        }catch (
-                NoFreeVariableException e){         //caused by alpha conversion
+        }catch (NoFreeVariableException e){         //caused by alpha conversion
+            if (out != null)
+                out.getPanes().get(out.getPanes().size() - 1).setContent(new Text(e.getMessage()));
             System.err.println(e.getMessage());
         }catch (ArrayIndexOutOfBoundsException e) { //caused by illegal character input
             e.printStackTrace();
@@ -292,9 +253,13 @@ public class BetaReduction {
         TitledPane pane;
         //in testcase out is null
         if(out != null) {
-            pane = out.getPanes().get(out.getPanes().size() - 1);
-            if(pane.getText().equals(input.toString()))
-                pane.setContent(new Text("beta reduction in inner Term\n" + term + "\ninsert " + term.getContentIndex(1) + " into " + term.getContentIndex(0)));
+            if(out.getPanes().size() > 0) {
+                pane = out.getPanes().get(out.getPanes().size() - 1);
+                if (pane.getText().equals(input.toString()))
+                    pane.setContent(new Text("beta reduction in inner Term\n" + term + "\ninsert " + term.getContentIndex(1) + " into " + term.getContentIndex(0)));
+                else
+                    out.getPanes().add(new TitledPane(input.toString(), new Text("beta reduction in inner Term\n" + term + "\ninsert " + term.getContentIndex(1) + " into " + term.getContentIndex(0))));
+            }
             else
                 out.getPanes().add(new TitledPane(input.toString(), new Text("beta reduction in inner Term\n" + term + "\ninsert " + term.getContentIndex(1) + " into " + term.getContentIndex(0))));
         }
@@ -385,5 +350,50 @@ public class BetaReduction {
             }
 
         }
+    }
+
+    private static void writeInOut(Input input, LambdaExpression previous, LambdaExpression current, Accordion out){
+        TextFlow textFlow = new TextFlow();
+        textFlow.getChildren().addAll(new Text("beta reduction:"), new Text(System.lineSeparator()));
+        String text = input.toString();
+
+        Text previousText = new Text(text.substring(0, previous.toString().length()));
+        previousText.setFill(Color.GREEN);
+        text = text.substring(previous.toString().length());
+
+        Text currentText;
+        if(text.length() > 0) {
+            currentText = new Text(text.substring(0, current.toString().length()));
+            text = text.substring(current.toString().length());
+        }else
+            currentText = new Text(text);
+        currentText.setFill(Color.RED);
+
+        Text post = new Text(text);
+        Text replaceText1 = new Text();
+        if (previous instanceof Term) {
+            if (((Term) previous).containsBound()) {
+                LambdaExpression le = ((Term) previous).getContentIndex(0);
+                if (le instanceof SingleBound)
+                    replaceText1 = new Text("replace all " + ((SingleBound) le).getVariable() + " in ");
+                if (le instanceof MultiBound)
+                    replaceText1 = new Text("replace all " + ((MultiBound) le).getVariables().get(0) + " in ");
+            }
+        }
+        Text replaceText2 = new Text(previousText.getText());
+        replaceText2.setFill(Color.GREEN);
+        Text replaceText3 = new Text(" with ");
+        Text replaceText4 = new Text(currentText.getText());
+        replaceText4.setFill(Color.RED);
+
+        textFlow.getChildren().addAll(previousText, currentText, post,
+                new Text(System.lineSeparator()), replaceText1, replaceText2, replaceText3, replaceText4);
+
+        if (out.getPanes().size() == 0)
+            out.getPanes().add(new TitledPane(input.toString(), textFlow));
+        else if (!out.getPanes().get(out.getPanes().size() - 1).getText().equals(input.toString()))
+            out.getPanes().add(new TitledPane(input.toString(), textFlow));
+        else
+            out.getPanes().get(out.getPanes().size() - 1).setContent(new Text("beta reduction:\ninsert " + current + " into " + previous));
     }
 }

@@ -25,7 +25,7 @@ public class InputTest {
 
     @Test
     public void test002(){
-        String inputString = "(Lxxu.xxuzu)y(Lp.p)f";
+        String inputString = "(Lxxu.xxuzu)y(Lp.p)f";        //space in gui
         test(inputString,"fzf\r");
     }
 
@@ -113,7 +113,7 @@ public class InputTest {
         test(inputString,"z(zz)(zz)\r");
     }
 
-   @Test
+    @Test
     public void test017(){
         String inputString = "(Lxy.x y )(Lx.zx)  ( (Lx.xx) ( (Lyx.xy)z((Lyx.yx)z) ) )";
         test(inputString,"z(zz)(zz)\r");
@@ -234,10 +234,10 @@ public class InputTest {
     }
 
     //example for NoFreeVariableException
-
+    @Test
     public void test037(){
         String inputString = "(Labcdefghijklmnopqrstuvwxyz.xx)x";
-        test(inputString,"alpha\r");
+        test(inputString,"(λabcdefghijklmnopqrstuvwxyz.xx)x\r");
     }
 
     public void test(String inputString, String expected){
@@ -272,7 +272,6 @@ public class InputTest {
             System.out.println("output:");
             System.out.println(input.toString());
 
-            System.out.println("beta");
             BetaReduction.betaReduction(input, null);
 
         } catch (RecognitionException e) {
