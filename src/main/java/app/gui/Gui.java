@@ -10,9 +10,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 
 public class Gui extends Application {
 
@@ -98,8 +96,10 @@ public class Gui extends Application {
             if(helpCounter == 0) {
                 helpCounter++;
                 StringBuilder help = new StringBuilder();
-                //TODO read for different systems
-                try (BufferedReader reader = new BufferedReader(new FileReader("src/main/resources/help.dat"))) {
+                try {
+                    InputStream is = getClass().getClassLoader().getResourceAsStream("help.dat");
+                    assert is != null;
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
                     String line;
                     while ((line = reader.readLine()) != null)
                         help.append(line).append("\n");

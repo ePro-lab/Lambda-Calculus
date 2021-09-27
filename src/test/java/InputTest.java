@@ -25,7 +25,7 @@ public class InputTest {
 
     @Test
     public void test002(){
-        String inputString = "(Lxxu.xxuzu)y(Lp.p)f";        //space in gui
+        String inputString = "(Lxxu.xxuzu)y(Lp.p)f";
         test(inputString,"fzf\r");
     }
 

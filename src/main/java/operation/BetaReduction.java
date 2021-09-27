@@ -26,13 +26,12 @@ public class BetaReduction {
                             //insert type is Variable and is not same as lambda bound variable
                             //ALPHA                                                 //alpha conversion necessary
                             Term oldTerm = term.copyTerm();
-                            Variable tmp = AlphaConversion.convert(term, (Variable) insert, multiBound.getVariables());
+                            Variable newVariable = AlphaConversion.convert(term, (Variable) insert, multiBound.getVariables());
                             System.out.println("alpha result " + term);
                             if(out != null) {
-                                TitledPane pane = out.getPanes().get(out.getPanes().size() - 1);
-                                pane.setContent(new Text("alpha conversion:\n" + "change bound " + insert + " to " + tmp + " in " + oldTerm));
+                                writeAlpha(insert, newVariable, oldTerm, term, out, false);
                                 System.out.println(" 1 beta reduction:\ninsert " + insert + " into " + term);
-                                writeInOut(input, term, insert, out);
+                                writeBeta(input, term, insert, out, false);
                             }
                         }
                         if (((Variable) term.getContentIndex(j)).compare(v)) {           //if variable matches lambda bound variable replace
@@ -80,10 +79,9 @@ public class BetaReduction {
 
                                         //in testcase out is null
                                         if(out != null) {
-                                            TitledPane pane = out.getPanes().get(out.getPanes().size() - 1);
-                                            pane.setContent(new Text("alpha conversion:\nchange bound " + insert + " to " + newVariable + " in " + oldTerm));
+                                            writeAlpha(insert, newVariable, oldTerm, term, out, false);
                                             System.out.println(" 2 beta reduction:\ninsert " + insert + " into " + term);
-                                            writeInOut(input, term, insert, out);
+                                            writeBeta(input, term, insert, out, false);
                                         }
                                     }
                             }
@@ -114,12 +112,13 @@ public class BetaReduction {
 
                             //in testcase out is null
                             if(out != null) {
-                                TitledPane pane = out.getPanes().get(out.getPanes().size() - 1);
+                                //TitledPane pane = out.getPanes().get(out.getPanes().size() - 1);
                                 System.out.println("alpha conversion:\nchange bound " + insert + " to " + newVariable + " in inner term " + oldTerm);
                                 System.out.println(input);
-                                pane.setContent(new Text("alpha conversion:\nchange bound " + insert + " to " + newVariable + " in inner term " + oldTerm));
+                                //takes inner term term.getContentIndex(j) instead of term for comparison
+                                writeAlpha(insert, newVariable, oldTerm, (Term) term.getContentIndex(j), out, true);
                                 System.out.println(" 3 beta reduction:\ninsert " + insert + " into " + term);
-                                out.getPanes().add(new TitledPane(input.toString(), new Text("beta reduction:\ninsert " + insert + " into " + term)));
+                                writeBeta(input, term, insert, out, false);
                             }
                         }
                         if(insert instanceof Term) {
@@ -153,7 +152,7 @@ public class BetaReduction {
                     if (previous != null) {
                         //in testcase out is null
                         if (out != null)
-                            writeInOut(input, previous, current, out);
+                            writeBeta(input, previous, current, out, false);
                     }
                     if (previous instanceof Term && !(((Term) previous).getContentIndex(0) instanceof Variable)) {  //check if previous is type Term and does not start with a Variable
                         if (((Term) previous).getContentIndex(0) instanceof Term) {   //if first LambdaExpression of term is a Term, go inside
@@ -352,9 +351,12 @@ public class BetaReduction {
         }
     }
 
-    private static void writeInOut(Input input, LambdaExpression previous, LambdaExpression current, Accordion out){
+    private static void writeBeta(Input input, LambdaExpression previous, LambdaExpression current, Accordion out, boolean inner){
         TextFlow textFlow = new TextFlow();
-        textFlow.getChildren().addAll(new Text("beta reduction:"), new Text(System.lineSeparator()));
+        if(!inner)
+            textFlow.getChildren().addAll(new Text("beta reduction:"), new Text(System.lineSeparator()));
+        else
+            textFlow.getChildren().addAll(new Text("beta reduction in inner Term:"), new Text(System.lineSeparator()));
         String text = input.toString();
 
         Text previousText = new Text(text.substring(0, previous.toString().length()));
@@ -386,8 +388,14 @@ public class BetaReduction {
         Text replaceText4 = new Text(currentText.getText());
         replaceText4.setFill(Color.RED);
 
-        textFlow.getChildren().addAll(previousText, currentText, post,
+        //if content of post is "" it will result in empty line, so don't add post
+        if(post.getText().equals(""))
+        textFlow.getChildren().addAll(previousText, currentText,
                 new Text(System.lineSeparator()), replaceText1, replaceText2, replaceText3, replaceText4);
+        else
+            textFlow.getChildren().addAll(previousText, currentText, post,
+                    new Text(System.lineSeparator()), replaceText1, replaceText2, replaceText3, replaceText4);
+
 
         if (out.getPanes().size() == 0)
             out.getPanes().add(new TitledPane(input.toString(), textFlow));
@@ -395,5 +403,39 @@ public class BetaReduction {
             out.getPanes().add(new TitledPane(input.toString(), textFlow));
         else
             out.getPanes().get(out.getPanes().size() - 1).setContent(new Text("beta reduction:\ninsert " + current + " into " + previous));
+    }
+
+    private static void writeAlpha(LambdaExpression insert, Variable newVariable, Term oldTerm, Term term, Accordion out, boolean inner){
+        TitledPane pane = out.getPanes().get(out.getPanes().size() - 1);
+
+        TextFlow textFlow = new TextFlow();
+        if(!inner)
+            textFlow.getChildren().addAll(new Text("alpha conversion:"), new Text(System.lineSeparator()));
+        else
+            textFlow.getChildren().addAll(new Text("alpha conversion in inner Term:"), new Text(System.lineSeparator()));
+
+        String oldTermString = oldTerm.toString();
+        String termString = term.toString();
+
+        int lastDif = 0;
+        for(int i=0; i<oldTermString.length(); i++){
+            if(oldTermString.charAt(i) != termString.charAt(i)) {
+                Text dif = new Text(oldTermString.charAt(i)+"");
+                dif.setFill(Color.RED);
+                textFlow.getChildren().addAll(new Text(oldTermString.substring(lastDif, i)), dif);
+                lastDif = i+1;
+            }
+        }
+        if(lastDif < oldTermString.length())
+            textFlow.getChildren().add(new Text(oldTermString.substring(lastDif)));
+
+        Text insertText = new Text(insert.toString());
+        insertText.setFill(Color.RED);
+        Text newVariableText = new Text(newVariable.toString());
+        newVariableText.setFill(Color.GREEN);
+
+        textFlow.getChildren().addAll(new Text(System.lineSeparator()), new Text("change bound "), insertText, new Text(" to "), newVariableText);
+
+        pane.setContent(textFlow);
     }
 }
