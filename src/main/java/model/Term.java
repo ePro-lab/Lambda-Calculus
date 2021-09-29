@@ -12,18 +12,14 @@ public class Term extends LambdaExpression{
     public Term(ArrayList<LambdaExpression> content){ this.content = content; }
 
     public void addTerm(Term term){
-
-        System.out.println("add term to term");
         content.add(term);
     }
 
     public void addVariable(Variable variable){
-        System.out.println("add variable to term");
         content.add(variable);
     }
 
     public void addBound(Bound bound){
-        System.out.println("add bound to term");
         content.add(bound);
     }
 

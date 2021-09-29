@@ -4,7 +4,6 @@ public class SingleBound extends Bound{
     private Variable variable;
 
     public SingleBound(Variable variable){
-        System.out.println("add variable to singleBound");
         this.variable = variable;
     }
 
