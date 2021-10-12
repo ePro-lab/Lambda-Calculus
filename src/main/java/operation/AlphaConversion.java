@@ -11,6 +11,15 @@ public class AlphaConversion {
         //copy used Variables of boundVariables to variables
         ArrayList<Variable> variables = new ArrayList<>(boundVariables);
 
+        //finds used variables, ONLY one dimension in
+        if(term.containsTerm())
+            for(int i=0; i<term.getContentSize(); i++)
+                if(term.getContentIndex(i) instanceof Term)
+                    if(!((Term) term.getContentIndex(i)).isBound(variable))
+                        for(int j=0; j<((Term) term.getContentIndex(i)).getContentSize(); j++)
+                            if(((Term) term.getContentIndex(i)).getContentIndex(j) instanceof Variable)
+                                variables.add((Variable) ((Term) term.getContentIndex(i)).getContentIndex(j));
+
         //used as character available/used | 0 = unused
         int[] characters = new int[123];
         char newChar = ' ';
@@ -33,6 +42,11 @@ public class AlphaConversion {
         }
 
         Variable convert = new Variable(newChar);
+        convert(term, variable, convert);
+        return new Variable(newChar);
+    }
+
+    private static void convert(Term term, Variable variable, Variable convert){
         for(int i =0; i<term.getContentSize(); i++){
             if(term.getContentIndex(i) instanceof MultiBound){
                 for(int j=0; j<((MultiBound) term.getContentIndex(i)).getVariablesSize(); j++){
@@ -49,7 +63,8 @@ public class AlphaConversion {
                     term.setContentIndex(i,convert);
                 }
             }
+            if(term.getContentIndex(i) instanceof Term && !((Term) term.getContentIndex(i)).isBound(variable))
+                convert((Term) term.getContentIndex(i), variable, convert);
         }
-        return new Variable(newChar);
     }
 }
