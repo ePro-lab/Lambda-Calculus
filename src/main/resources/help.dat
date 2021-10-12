@@ -1,0 +1,75 @@
+Input:
+    Lambda:
+        Use 'L' as lambda symbol.
+
+    Bound:
+        Bounds have to be written as one or more SingleBound(s) 'Lx.'
+        or one MultiBound (short version) 'Lxy.'
+        Lambda, variable(s) and dot have to be written together with no space in between.
+        Multiple SingleBounds can have space in between e.g. "Lx.   Ly."
+    Bound example:
+        'Lx.'
+        'Lx.Ly.'    |   don't mix both
+        'Lxy.'      |   in a single term (see EBNF)
+
+    Term:
+        Terms exist of one or multiple SingleBound(s) or one MultiBound
+        followed by Terms and/or Variables.
+        Terms are always surrounded by round brackets.
+    Term example (including inner terms):
+        '(Lxy.xy)'
+        '(Lab.a(Lbc.(La.a))ab)'
+        '(Lxy.((Lyz.y)(Lpx.x)))'
+
+    Variable:
+        Allowed Variables are lower case a-z.
+
+
+Output:
+    Shows a list of steps to solve the input.
+    Every step contains information on how to reach the next step.
+    The result contains information 'end'.
+
+
+Buttons:
+    Start:
+        Starts the calculation.
+        Alternative: press 'Enter'
+
+    Next:
+        Shows the next step.
+
+    End:
+        Skips to the end / shows every step.
+
+    Help:
+        Opens help window.
+
+
+
+
+
+EBNF
+
+input:
+(term|VARIABLE)+
+
+term:
+'(' (SINGLEBOUND)+ (VARIABLE|term)+ ')'
+'('  MULTIBOUND (VARIABLE|term)+ ')'
+'(' (term)+ ')'
+'(' (term|VARIABLE)+ ')'
+'(' VARIABLE (VARIABLE)+ ')'
+
+
+VARIABLE:
+[a-z]
+
+SINGLEBOUND:
+LAMBDA [a-z] '.'
+
+MULTIBOUND:
+LAMBDA [a-z]+ '.'
+
+LAMBDA:
+'L'
