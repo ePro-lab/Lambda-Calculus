@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import operation.BetaReduction;
 
 import java.io.*;
 
@@ -37,6 +38,7 @@ public class Gui extends Application {
 
         //types used
         Label label;
+        Label time = new Label("time:");
         TextField textField;
         Button button;
         Accordion accordion = new Accordion();
@@ -47,20 +49,32 @@ public class Gui extends Application {
 
         textField = new TextField();
         textField.setOnAction( e -> {
+            long start = System.currentTimeMillis();
             accordion.getPanes().clear();
-            tmp = Main.compute(textField.getText());
+            BetaReduction.resetCount();
+            try {
+                tmp = Main.compute(textField.getText());
+            }catch (Exception ignored) {}
             if(!tmp.getPanes().isEmpty())
                 accordion.getPanes().add(tmp.getPanes().remove(0));
+            long elapsedTime = System.currentTimeMillis() - start;
+            time.setText("time: "+elapsedTime +"ms");
         });
         gridPane.add(textField,1,0);
         GridPane.setColumnSpan(textField,3);
 
         button = new Button("start");
         button.setOnAction(e -> {
+            long start = System.currentTimeMillis();
             accordion.getPanes().clear();
-            tmp = Main.compute(textField.getText());
+            BetaReduction.resetCount();
+            try {
+                tmp = Main.compute(textField.getText());
+            }catch (Exception ignored) {}
             if(!tmp.getPanes().isEmpty())
                 accordion.getPanes().add(tmp.getPanes().remove(0));
+            long elapsedTime = System.currentTimeMillis() - start;
+            time.setText("time: "+elapsedTime +"ms");
         });
         gridPane.add(button,4,0);
 
@@ -121,7 +135,9 @@ public class Gui extends Application {
         });
         gridPane.add(button,4,3);
 
-
+        //row 3
+        //add label time
+        gridPane.add(time,0,2);
 
         Scene scene = new Scene(gridPane,600,250);
         stage.setScene(scene);

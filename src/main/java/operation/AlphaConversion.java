@@ -10,15 +10,7 @@ public class AlphaConversion {
     public static Variable convert(Term term, Variable variable, ArrayList<Variable> boundVariables) throws NoFreeVariableException {
         //copy used Variables of boundVariables to variables
         ArrayList<Variable> variables = new ArrayList<>(boundVariables);
-
-        //finds used variables, ONLY one dimension in
-        if(term.containsTerm())
-            for(int i=0; i<term.getContentSize(); i++)
-                if(term.getContentIndex(i) instanceof Term)
-                    if(!((Term) term.getContentIndex(i)).isBound(variable))
-                        for(int j=0; j<((Term) term.getContentIndex(i)).getContentSize(); j++)
-                            if(((Term) term.getContentIndex(i)).getContentIndex(j) instanceof Variable)
-                                variables.add((Variable) ((Term) term.getContentIndex(i)).getContentIndex(j));
+        findUsedVariables(term, variable, variables, true);
 
         //used as character available/used | 0 = unused
         int[] characters = new int[123];
@@ -65,6 +57,21 @@ public class AlphaConversion {
             }
             if(term.getContentIndex(i) instanceof Term && !((Term) term.getContentIndex(i)).isBound(variable))
                 convert((Term) term.getContentIndex(i), variable, convert);
+        }
+    }
+
+    private static void findUsedVariables(Term term, Variable variable, ArrayList<Variable> variables, boolean first){
+        for(int i=0; i<term.getContentSize(); i++) {
+            if (term.getContentIndex(i) instanceof Term)
+                findUsedVariables((Term) term.getContentIndex(i), variable, variables, false);
+            else if(!term.isBound(variable) || first){                  //in 'first' term it must check all variables, since first term bound will be changed in alpha
+                if (term.getContentIndex(i) instanceof SingleBound)     //if 'first' is false there will be no alpha if the variable is already bound
+                    variables.add(((SingleBound) term.getContentIndex(i)).getVariable());
+                else if(term.getContentIndex(i) instanceof MultiBound)
+                    variables.addAll(((MultiBound) term.getContentIndex(i)).getVariables());
+                else if(term.getContentIndex(i) instanceof Variable)
+                    variables.add((Variable) term.getContentIndex(i));
+            }
         }
     }
 }
