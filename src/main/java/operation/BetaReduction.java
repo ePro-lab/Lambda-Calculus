@@ -1,5 +1,6 @@
 package operation;
 
+import exception.EndlessLoopException;
 import exception.NoFreeVariableException;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
@@ -11,7 +12,15 @@ import model.*;
 import java.util.ArrayList;
 
 public class BetaReduction {
+    private static int count = 0;
+
+    public static void resetCount(){
+        count = 0;
+    }
+
     public static LambdaExpression reduce(Term term, LambdaExpression insert, Input input, Accordion out) throws Exception {
+        if (++count == 1000)
+            throw new EndlessLoopException(input); //thrown to stop endless loop, caught in Gui
 
         //found MultiBound
         if (term.getContentIndex(0) instanceof MultiBound) {
@@ -239,6 +248,9 @@ public class BetaReduction {
         } catch (ArrayIndexOutOfBoundsException e) { //caused by illegal character input
             e.printStackTrace();
             System.out.println("illegal input");
+        } catch (EndlessLoopException e1) {
+            if (out != null)
+                out.getPanes().get(out.getPanes().size()-1).setContent(new Text("Encountered endless loop in input \"" + input + "\"."));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -317,7 +329,7 @@ public class BetaReduction {
                 if (!((Term) term.getContentIndex(i)).isBound(variable))
                     ((Term) term.getContentIndex(i)).replaceVariables(variable, insert);
             } else if (term.getContentIndex(i) instanceof Variable && insert instanceof Variable) {
-                if (term.isBound(variable) || term.isBound((Variable) insert) && term.containsVariable(variable)) {
+                if (term.isBound(variable) || (term.isBound((Variable) insert) && term.containsVariable(variable)) || term.containsVariable((Variable) insert)) {
                     ArrayList<Variable> boundVariables = new ArrayList<>();
                     boundVariables.add(variable);
                     boundVariables.add((Variable) insert);
@@ -518,7 +530,10 @@ public class BetaReduction {
             if (oldTermString.charAt(i) != termString.charAt(i)) {
                 Text dif = new Text(oldTermString.charAt(i) + "");
                 dif.setFill(Color.RED);
-                textFlow.getChildren().addAll(new Text(oldTermString.substring(lastDif, i)), dif);
+                if(lastDif == i)
+                    textFlow.getChildren().addAll(dif);
+                else
+                    textFlow.getChildren().addAll(new Text(oldTermString.substring(lastDif, i)), dif);
                 lastDif = i + 1;
             }
         }
