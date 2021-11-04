@@ -6,7 +6,7 @@
 
     <groupId>com.github.ePro-lab</groupId>
     <artifactId>Lambda-Calculus</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
 
     <properties>
         <maven.compiler.source>14</maven.compiler.source>
