@@ -9,6 +9,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -16,6 +18,11 @@ import java.io.PrintStream;
 
 public class InputTest {
     private final boolean showCalculation = true;
+
+    @Before
+    public void clear(){
+        BetaReduction.resetCount();
+    }
 
     @Test
     public void test001(){
@@ -143,13 +150,19 @@ public class InputTest {
         test(inputString,"((uu)z)x\r");
     }
 
+    //ignored since term structure is added in 1.2 and it's endless loop, which result depends on the number of circles
+    @Deprecated
     @Test
+    @Ignore
     public void test022(){
         String inputString = "(Ly.(Lx.Ly.xx)(Lx.Ly.xx))";
         test(inputString,"(λy.(λx.λy.xx)(λx.λy.xx))\r");
     }
 
+    //ignored since term structure is added in 1.2 and it's endless loop, which result depends on the number of circles
+    @Deprecated
     @Test
+    @Ignore
     public void test023(){
         String inputString = "(Ly.(Lxy.xx)(Lxy.xx))";
         test(inputString,"(λy.(λxy.xx)(λxy.xx))\r");
@@ -240,6 +253,47 @@ public class InputTest {
         test(inputString,"(λabcdefghijklmnopqrstuvwxyz.xx)x\r");
     }
 
+    @Test
+    public void test038(){
+        String inputString = "(Lxyzu.(Ly.xy)xxyzux)yx";
+        test(inputString,"(λzu.(yy)yxzuy)\r");
+    }
+
+    @Test
+    public void test039(){
+        String inputString = "(Lx.Ly.Lz.Lu.(Ly.xy)xxyzux)yx";
+        test(inputString,"(λz.λu.(yy)yxzuy)\r");
+    }
+
+    @Test
+    public void test040(){
+        String inputString = "(Lxyzu.(Lp.xp)xxyzux)yx";
+        test(inputString,"(λzu.(yy)yxzuy)\r");
+    }
+    @Test
+    public void test041(){
+        String inputString = "(Lx.Ly.Lz.Lu.(Lp.xp)xxyzux)yx";
+        test(inputString,"(λz.λu.(yy)yxzuy)\r");
+    }
+
+    @Test
+    public void test042(){
+        String inputString = "(Lxyzu.(Lyx.xy)xxyzux)yx";
+        test(inputString,"(λzu.(yy)xzuy)\r");
+    }
+
+    @Test
+    public void test043(){
+        String inputString = "(Lx.Ly.Lz.Lu.(Lyx.xy)xxyzux)yx";
+        test(inputString,"(λz.λu.(yy)xzuy)\r");
+    }
+
+    @Test
+    public void test044(){
+        String inputString = "(Lx.xx)(Lx.xx)";
+        test(inputString,"(λx.xx)(λx.xx)\r");
+    }
+
     public void test(String inputString, String expected){
         PrintStream stdout = System.out;
 
@@ -272,7 +326,7 @@ public class InputTest {
             System.out.println("output:");
             System.out.println(input.toString());
 
-            BetaReduction.betaReduction(input, null);
+            BetaReduction.betaReduction(input, null,"","");
 
         } catch (RecognitionException e) {
             e.printStackTrace();

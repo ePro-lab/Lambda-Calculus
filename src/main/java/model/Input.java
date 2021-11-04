@@ -9,6 +9,10 @@ public class Input{
         inputList = new ArrayList<>();
     }
 
+    public Input(ArrayList<LambdaExpression> lambdaExpressions){
+        this.inputList = lambdaExpressions;
+    }
+
     public void addTerm(Term term){
         inputList.add(term);
     }
@@ -33,11 +37,15 @@ public class Input{
         return inputList.get(i);
     }
 
+    public LambdaExpression removeListIndex(int i){
+        return inputList.remove(i);
+    }
+
     public void setInputListIndex(int i, LambdaExpression lambdaExpression){
         inputList.set(i,lambdaExpression);
     }
 
-    public void removeInputListIndex(int i){
+    public void deleteListIndex(int i){
         inputList.remove(i);
     }
 

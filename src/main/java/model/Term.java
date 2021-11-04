@@ -171,6 +171,34 @@ public class Term extends LambdaExpression{
         return content.get(0) instanceof Term;
     }
 
+    public boolean containsTermAfterBound(){
+        if(content.get(0) instanceof MultiBound)
+            return content.get(1) instanceof Term;
+        else
+        if(content.get(0) instanceof SingleBound)
+            for(int i=1; i<content.size();){
+                if(content.get(i) instanceof SingleBound)
+                    i++;
+                else
+                    return content.get(i) instanceof Term;
+            }
+        return false;
+    }
+
+    public Term getTermAfterBound(){
+        if(content.get(0) instanceof MultiBound)
+            return (Term) content.get(1);
+        else
+        if(content.get(0) instanceof SingleBound)
+            for(int i=1; i<content.size();){
+                if(content.get(i) instanceof SingleBound)
+                    i++;
+                else
+                    return (Term) content.get(i);
+            }
+        return null;
+    }
+
     public void replaceVariables(Variable variable, LambdaExpression lambdaExpression){
         for(int i=0; i<content.size(); i++)
             if(content.get(i) instanceof Variable && ((Variable) content.get(i)).compare(variable))

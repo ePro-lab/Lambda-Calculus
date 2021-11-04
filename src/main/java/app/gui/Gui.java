@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import operation.BetaReduction;
 
@@ -57,6 +58,15 @@ public class Gui extends Application {
             }catch (Exception ignored) {}
             if(!tmp.getPanes().isEmpty())
                 accordion.getPanes().add(tmp.getPanes().remove(0));
+            if(accordion.getPanes().get(0).getContent() instanceof TextFlow) {
+                Text lastTextLineOfFirstPane = (Text) ((TextFlow) accordion.getPanes().get(0).getContent()).getChildren().get(((TextFlow) accordion.getPanes().get(0).getContent()).getChildren().size() - 1);
+                if (lastTextLineOfFirstPane.getText().contains("endless")
+                        && tmp.getPanes().size() > 1) { //contains endless loop build up
+                    TextFlow tmpTF = new TextFlow();
+                    tmpTF.getChildren().addAll(accordion.getPanes().get(0).getContent(), new Text("\nPress 'end' or 'next' to see build up."));
+                    accordion.getPanes().get(0).setContent(tmpTF);
+                }
+            }
             long elapsedTime = System.currentTimeMillis() - start;
             time.setText("time: "+elapsedTime +"ms");
         });
@@ -73,6 +83,15 @@ public class Gui extends Application {
             }catch (Exception ignored) {}
             if(!tmp.getPanes().isEmpty())
                 accordion.getPanes().add(tmp.getPanes().remove(0));
+            if(accordion.getPanes().get(0).getContent() instanceof TextFlow) {
+                Text lastTextLineOfFirstPane = (Text) ((TextFlow) accordion.getPanes().get(0).getContent()).getChildren().get(((TextFlow) accordion.getPanes().get(0).getContent()).getChildren().size() - 1);
+                if (lastTextLineOfFirstPane.getText().contains("endless")
+                        && tmp.getPanes().size() > 1) { //contains endless loop build up
+                    TextFlow tmpTF = new TextFlow();
+                    tmpTF.getChildren().addAll(accordion.getPanes().get(0).getContent(), new Text("\nPress 'end' or 'next' to see build up."));
+                    accordion.getPanes().get(0).setContent(tmpTF);
+                }
+            }
             long elapsedTime = System.currentTimeMillis() - start;
             time.setText("time: "+elapsedTime +"ms");
         });
