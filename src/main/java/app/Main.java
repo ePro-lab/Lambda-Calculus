@@ -32,7 +32,7 @@ public class Main {
             System.out.println("\u001B[34m" + "No Input " + "\u001B[0m");
         else{
             try {
-                //to 'catch' parser errors as a result of wrong input - technically it's not catched, just a 'break', since it can't be catched here
+                //to 'catch' parser errors as a result of wrong input - technically it's not caught, just a 'break', since it can't be caught here
                 ByteArrayOutputStream bas = new ByteArrayOutputStream();
                 PrintStream err = new PrintStream(bas);
                 PrintStream old = System.err;
@@ -53,7 +53,7 @@ public class Main {
                 }
                 else {
                     System.out.println(input);
-                    BetaReduction.betaReduction(input, out);
+                    BetaReduction.betaReduction(input, out, "","");
                 }
             } catch (RecognitionException e) {
                 e.printStackTrace();

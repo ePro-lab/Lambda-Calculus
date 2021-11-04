@@ -18,8 +18,8 @@ public class BetaReduction {
         count = 0;
     }
 
-    public static LambdaExpression reduce(Term term, LambdaExpression insert, Input input, Accordion out) throws Exception {
-        if (++count == 1000)
+    public static LambdaExpression reduce(Term term, LambdaExpression insert, Input input, Accordion out, String preString, String postString) throws Exception {
+        if (++count >= 1000)
             throw new EndlessLoopException(input); //thrown to stop endless loop, caught in Gui
 
         //found MultiBound
@@ -28,7 +28,22 @@ public class BetaReduction {
             Variable v = multiBound.getVariablesIndex(0);  //save lambda bound variable
 
             //find and replace matches if context exists
-            if (!multiBound.containsMultipleBound(v))
+            if (!multiBound.containsMultipleBound(v)) {
+                if (term.getContentIndex(1) instanceof Term && insert instanceof Variable && term.isBound((Variable) insert)) {
+                    //ALPHA   in case of inner term at index 1 | else beta operation will be executed before alpha operation
+                    Term oldTerm = term.copyTerm();
+                    Variable newVariable = AlphaConversion.convert(term, (Variable) insert, multiBound.getVariables());
+                    System.out.println("alpha result " + term);
+                    if (out != null) {
+                        writeAlpha(insert, newVariable, oldTerm, term, out, false);
+                        System.out.println(" 0 beta reduction:\ninsert " + insert + " into " + term);
+                        if(preString.equals("") && postString.equals(""))
+                            writeBeta(input, term, insert, out);
+                        else
+                            writeInnerBeta(input, term, insert, out, null, preString, postString);
+                    }
+                }
+                boolean changedTermAtIndexOne = false;
                 for (int j = 1; j < term.getContentSize(); j++) {                             //start search after MultiBound
                     if (term.getContentIndex(j) instanceof Variable) {
                         if (insert instanceof Variable && !(v.compare((Variable) insert)) && multiBound.containsAnotherBound((Variable) insert)) {
@@ -40,17 +55,25 @@ public class BetaReduction {
                             if (out != null) {
                                 writeAlpha(insert, newVariable, oldTerm, term, out, false);
                                 System.out.println(" 1 beta reduction:\ninsert " + insert + " into " + term);
-                                writeBeta(input, term, insert, out);
+                                if(preString.equals("") && postString.equals(""))
+                                    writeBeta(input, term, insert, out);
+                                else
+                                    writeInnerBeta(input, term, insert, out, null, preString, postString);
                             }
                         }
                         if (((Variable) term.getContentIndex(j)).compare(v)) {           //if variable matches lambda bound variable replace
                             term.setContentIndex(j, insert);
                         }
+                        if (term.getContentIndex(1) instanceof Term && !((Term) term.getContentIndex(1)).isBound(v) && !changedTermAtIndexOne) {
+                            ((Term) term.getContentIndex(1)).replaceVariables(v, insert);
+                            changedTermAtIndexOne = true;
+                        }
                     } else
                         //if Term in Term check context
                         if (term.getContentIndex(j) instanceof Term && !((Term) term.getContentIndex(j)).isBound(v))
-                            replaceVariablesInTermInTerm(input, (Term) term.getContentIndex(j), v, insert, out);
+                            replaceVariablesInTermInTerm(input, (Term) term.getContentIndex(j), v, insert, out, preString, postString);
                 }
+            }
             //remove lambda variable
             multiBound.removeVariablesIndex(0);
             //will change MultiBound to SingleBound
@@ -89,7 +112,10 @@ public class BetaReduction {
                                         if (out != null) {
                                             writeAlpha(insert, newVariable, oldTerm, term, out, false);
                                             System.out.println(" 2 beta reduction:\ninsert " + insert + " into " + term);
-                                            writeBeta(input, term, insert, out);
+                                            if(preString.equals("") && postString.equals(""))
+                                                writeBeta(input, term, insert, out);
+                                            else
+                                                writeInnerBeta(input, term, insert, out, null, preString, postString);
                                         }
                                     }
                             }
@@ -125,7 +151,10 @@ public class BetaReduction {
                                 //takes inner term term.getContentIndex(j) instead of term for comparison
                                 writeAlpha(insert, newVariable, oldTerm, (Term) term.getContentIndex(j), out, true);
                                 System.out.println(" 3 beta reduction:\ninsert " + insert + " into " + term);
-                                writeBeta(input, term, insert, out);
+                                if(preString.equals("") && postString.equals(""))
+                                    writeBeta(input, term, insert, out);
+                                else
+                                    writeInnerBeta(input, term, insert, out, null, preString, postString);
                             }
                         }
                         if (insert instanceof Term) {
@@ -136,7 +165,7 @@ public class BetaReduction {
                     }
                 }
                 for (Term t : terms)
-                    replaceVariablesInTermInTerm(input, t, v, insert, out);
+                    replaceVariablesInTermInTerm(input, t, v, insert, out, preString, postString);
                 term.removeContentIndex(0);
             }
 
@@ -146,7 +175,7 @@ public class BetaReduction {
         return term;
     }
 
-    public static void betaReduction(Input input, Accordion out) {
+    public static Input betaReduction(Input input, Accordion out, String preString, String postString) {
         try {
             LambdaExpression previous = input.getInputListIndex(0);       //the one to replace a bound-variable in
             LambdaExpression current;                                       //replacement
@@ -154,22 +183,28 @@ public class BetaReduction {
             int lastTermIndex = 0;
             if (!(input.getInputListIndex(0) instanceof Variable)) {
                 for (int i = 1; i < input.getInputListSize() && !(input.getInputListIndex(0) instanceof Variable); i++) {
+                    if (++count >= 300)
+                        throw new EndlessLoopException(input); //thrown to stop endless loop, caught in Gui -> will stop e.g. (Lx.xx)(Lx.xxx)
                     current = input.getInputListIndex(i);
                     if (previous != null) {
                         //in testcase out is null
                         if (out != null)
-                            writeBeta(input, previous, current, out);
+                            if(preString.equals("") && postString.equals(""))
+                                writeBeta(input, previous, current, out);
+                            else
+                            if(previous instanceof Term)
+                                writeInnerBeta(input, (Term) previous, current, out, null, preString, postString);
                     }
                     if (previous instanceof Term && !(((Term) previous).getContentIndex(0) instanceof Variable)) {  //check if previous is type Term and does not start with a Variable
                         if (((Term) previous).getContentIndex(0) instanceof Term) {   //if first LambdaExpression of term is a Term, go inside
-                            checkInnerTerm(input, (Term) previous, lastTermIndex, 0, out);
+                            checkInnerTerm(input, (Term) previous, lastTermIndex, 0, out, preString, postString);
                             if (input.getInputListSize() == 2 && input.getInputListIndex(0) instanceof Term && ((Term) input.getInputListIndex(0)).containsNoVariableAtIndexZero()) {
                                 i = 0;
                                 previous = input.getInputListIndex(0);
                             }
                         } else {
-                            input.setInputListIndex(lastTermIndex, BetaReduction.reduce((Term) previous, current, input, out));
-                            input.removeInputListIndex(i);
+                            input.setInputListIndex(lastTermIndex, BetaReduction.reduce((Term) previous, current, input, out, preString, postString));
+                            input.deleteListIndex(i);
                             //'current' has been deleted, so index i will not be 'next' LambdaExpression
                             i = 0;
                             //check if returned 'term' is size 1, if so replace with content of term
@@ -211,7 +246,7 @@ public class BetaReduction {
                         lastTermIndex = i;
                         previous = current;
                         if (previous instanceof Term) {
-                            checkInnerTerm(input, (Term) previous, lastTermIndex, 0, out);
+                            checkInnerTerm(input, (Term) previous, lastTermIndex, 0, out, preString, postString);
                         }
                     }
                 }
@@ -220,20 +255,64 @@ public class BetaReduction {
                 for (int i = 0; i < input.getInputListSize(); i++)
                     if (input.getInputListIndex(i) instanceof Term)
                         if (((Term) input.getInputListIndex(i)).containsTerm())
-                            checkInnerTerm(input, (Term) input.getInputListIndex(i), i, 0, out);
+                            checkInnerTerm(input, (Term) input.getInputListIndex(i), i, 0, out, preString, postString);
 
                 //check for more beta
                 for (int i = 0; i < input.getInputListSize(); i++) {
                     if (input.getInputListIndex(i) instanceof Term && ((Term) input.getInputListIndex(i)).containsTermAtIndexZero()) {
-                        checkInnerTerm(input, (Term) input.getInputListIndex(i), i, 0, out);
+                        checkInnerTerm(input, (Term) input.getInputListIndex(i), i, 0, out, preString, postString);
                         i = 0;
                     }
                 }
             }
 
-            if (out != null) {
+            //check if first term contains a term after bound -> more beta
+            boolean runInner = false;
+            ArrayList<LambdaExpression> lambdaExpressionsForTestInput = new ArrayList<>();  //used for tests
+            if(input.getInputListIndex(0) instanceof Term )
+                if(((Term) input.getInputListIndex(0)).containsBound() && ((Term) input.getInputListIndex(0)).containsTermAfterBound()) {
+                    ArrayList<LambdaExpression> lambdaExpressions = new ArrayList<>();
+                    Term outerTerm = (Term) input.removeListIndex(0);
+                    Term termAfterBound = outerTerm.getTermAfterBound();
+                    lambdaExpressions.add(termAfterBound);
+                    boolean found = false;  //when found index of term after bound; copy rest
+                    StringBuilder preStringBuilder = new StringBuilder(preString);
+                    preStringBuilder.append("(");
+                    for(int i = 0; i<outerTerm.getContentSize(); i++){
+                        if(!found) {
+                            if (outerTerm.getContentIndex(i) instanceof Term && ((Term) outerTerm.getContentIndex(i)).compare(termAfterBound))
+                                found = true;
+                            else {
+                                preStringBuilder.append(outerTerm.getContentIndex(i));
+                                lambdaExpressionsForTestInput.add(outerTerm.getContentIndex(i));
+                            }
+                        }else {
+                            if (outerTerm.getContentIndex(i) instanceof Variable)
+                                lambdaExpressions.add(new Variable(((Variable) outerTerm.getContentIndex(i)).getVariable()));
+                            else if (outerTerm.getContentIndex(i) instanceof Term)
+                                lambdaExpressions.add(((Term) outerTerm.getContentIndex(i)).copyTerm());
+                        }
+                    }
+                    preString = preStringBuilder.toString();
+                    postString = postString + ")";
+                    Input newInput = new Input(lambdaExpressions);
+                    input = betaReduction(newInput, out, preString, postString);
+                    Term tmp = new Term(lambdaExpressionsForTestInput);
+                    for(int i=0; i<input.getInputListSize(); i++){
+                        if(input.getInputListIndex(i) instanceof Term)
+                            tmp.addTerm((Term) input.getInputListIndex(i));
+                        else if(input.getInputListIndex(i) instanceof Variable)
+                            tmp.addVariable((Variable) input.getInputListIndex(i));
+                    }
+                    ArrayList<LambdaExpression> replacementList = new ArrayList<>();
+                    replacementList.add(tmp);
+                    input.replaceInputList(replacementList);
+                    runInner = true;
+                }
+
+            if (out != null && !runInner) {
                 if (out.getPanes().size() > 0) {
-                    if (!out.getPanes().get(out.getPanes().size() - 1).getText().equals(input.toString()))
+                    if (!out.getPanes().get(out.getPanes().size() - 1).getText().equals(preString + input + postString))
                         out.getPanes().add(new TitledPane(input.toString(), new Text("end")));
                     else
                         out.getPanes().get(out.getPanes().size() - 1).setContent(new Text("end"));
@@ -241,6 +320,7 @@ public class BetaReduction {
                     out.getPanes().add(new TitledPane(input.toString(), new Text("end")));
             }
             System.out.println(input);
+            return input;
         } catch (NoFreeVariableException e) {         //caused by alpha conversion
             if (out != null)
                 out.getPanes().get(out.getPanes().size() - 1).setContent(new Text(e.getMessage()));
@@ -249,31 +329,39 @@ public class BetaReduction {
             e.printStackTrace();
             System.out.println("illegal input");
         } catch (EndlessLoopException e1) {
-            if (out != null)
-                out.getPanes().get(out.getPanes().size()-1).setContent(new Text("Encountered endless loop in input \"" + input + "\"."));
+            if (out != null) {
+                if(out.getPanes().size() > 1) {
+                    TextFlow tmpTF = new TextFlow();
+                    tmpTF.getChildren().addAll(out.getPanes().get(0).getContent(), new Text(System.lineSeparator()), new Text(System.lineSeparator()), new Text("Encountered endless loop."));
+                    out.getPanes().get(0).setContent(tmpTF);
+                }else
+                    out.getPanes().get(0).setContent(new Text("Encountered endless loop."));
+
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return input;
     }
 
-    public static void checkInnerTerm(Input input, Term term, int lastTermIndex, int dimension, Accordion out) {
+    public static void checkInnerTerm(Input input, Term term, int lastTermIndex, int dimension, Accordion out, String preString, String postString) {
         TitledPane pane;
         //in testcase out is null
         if (out != null && term.getContentIndex(0) instanceof Term) {
             if (out.getPanes().size() > 0) {
                 pane = out.getPanes().get(out.getPanes().size() - 1);
                 if (pane.getText().equals(input.toString()))
-                    writeInnerBeta(input, (Term) term.getContentIndex(0), term.getContentIndex(1), out, pane);
+                    writeInnerBeta(input, (Term) term.getContentIndex(0), term.getContentIndex(1), out, pane, preString, postString);
                 else
-                    writeInnerBeta(input, (Term) term.getContentIndex(0), term.getContentIndex(1), out, null);
+                    writeInnerBeta(input, (Term) term.getContentIndex(0), term.getContentIndex(1), out, null, preString, postString);
             } else if (term.containsBound())
-                writeInnerBeta(input, (Term) term.getContentIndex(0), term.getContentIndex(1), out, null);
+                writeInnerBeta(input, (Term) term.getContentIndex(0), term.getContentIndex(1), out, null, preString, postString);
         }
         System.out.println("inner term:" + term.getContentIndex(0) + " and " + term.getContentIndex(1));
         try {
             if (term.getContentIndex(0) instanceof Term && ((Term) term.getContentIndex(0)).containsBound()) {
                 if (!(((Term) term.getContentIndex(0)).getContentIndex(0) instanceof Term)) {
-                    BetaReduction.reduce((Term) term.getContentIndex(0), term.getContentIndex(1), input, out);
+                    BetaReduction.reduce((Term) term.getContentIndex(0), term.getContentIndex(1), input, out, preString, postString);
                     term.removeContentIndex(1);
                     if (((Term) term.getContentIndex(0)).getContentSize() == 1)
                         term.setContentIndex(0, ((Term) term.getContentIndex(0)).getContentIndex(0));
@@ -286,11 +374,11 @@ public class BetaReduction {
                     System.out.println("inner result:" + input.getInputListIndex(lastTermIndex));
                 } else
                     //if first LE of (2)Term in (1)Term is a (3)Term check inner Term of (2)
-                    checkInnerTerm(input, (Term) term.getContentIndex(0), 0, dimension + 1, out);
+                    checkInnerTerm(input, (Term) term.getContentIndex(0), 0, dimension + 1, out, preString, postString);
             } else if (term.getContentIndex(0) instanceof Variable || (term.getContentIndex(0) instanceof Term && ((Term) term.getContentIndex(0)).getContentIndex(0) instanceof Variable)) {
                 for (int i = 1; i < term.getContentSize(); i++) {
                     if (term.getContentIndex(i) instanceof Term) {
-                        checkInnerTerm(input, (Term) term.getContentIndex(i), i, dimension + 1, out);
+                        checkInnerTerm(input, (Term) term.getContentIndex(i), i, dimension + 1, out, preString, postString);
                         term.clean();
                         if (term.containsOnlyVariableTerms())
                             if (term.getContentSize() == 2) {
@@ -317,13 +405,14 @@ public class BetaReduction {
                     }
                 }
             } else if (term.getContentIndex(0) instanceof Bound && term.getContentIndex(1) instanceof Term && ((Term) term.getContentIndex(1)).containsTermAtIndexZero())
-                checkInnerTerm(input, (Term) term.getContentIndex(1), lastTermIndex, dimension + 1, out);
+                checkInnerTerm(input, (Term) term.getContentIndex(1), lastTermIndex, dimension + 1, out, preString, postString);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void replaceVariablesInTermInTerm(Input input, Term term, Variable variable, LambdaExpression insert, Accordion out) throws NoFreeVariableException {
+    public static void replaceVariablesInTermInTerm(Input input, Term term, Variable variable, LambdaExpression insert, Accordion out, String preString, String postString) throws NoFreeVariableException {
+        boolean alphaDOne = false;
         for (int i = 0; i < term.getContentSize(); i++) {
             if (term.getContentIndex(i) instanceof Term) {
                 if (!((Term) term.getContentIndex(i)).isBound(variable))
@@ -339,24 +428,38 @@ public class BetaReduction {
                         for (int j = 0; j < term.getContentSize(); j++)
                             if (term.getContentIndex(j) instanceof SingleBound)
                                 boundVariables.add(((SingleBound) term.getContentIndex(j)).getVariable());
-                    if(term.isBound(variable)) {
+                    if(term.isBound(variable) && term.containsVariable(variable)) {
                         Term oldTerm = term.copyTerm();
                         Variable newVariable = AlphaConversion.convert(term, variable, boundVariables);
+                        if(!oldTerm.compare(term))
+                            alphaDOne = true;
                         if (out != null) {
                             writeAlpha(insert, newVariable, oldTerm, term, out, true);
-                            writeBeta(input, input.getInputListIndex(0), insert, out);
+                            if(preString.equals("") && postString.equals(""))
+                                writeBeta(input, input.getInputListIndex(0), insert, out);
+                            else
+                            if(input.getInputListIndex(0) instanceof Term)
+                                writeInnerBeta(input, (Term) input.getInputListIndex(0), insert, out, null, preString, postString);
+
                         }
                     }
-                    else if(term.isBound((Variable) insert)) {
+                    else if(term.isBound((Variable) insert) && term.containsVariable(variable)) {
                         Term oldTerm = term.copyTerm();
                         Variable newVariable = AlphaConversion.convert(term, (Variable) insert, boundVariables);
+                        if(!oldTerm.compare(term))
+                            alphaDOne = true;
                         if (out != null) {
                             writeAlpha(insert, newVariable, oldTerm, term, out, true);
-                            writeBeta(input, input.getInputListIndex(0), insert, out);
+                            if(preString.equals("") && postString.equals(""))
+                                writeBeta(input, input.getInputListIndex(0), insert, out);
+                            else
+                            if(input.getInputListIndex(0) instanceof Term)
+                                writeInnerBeta(input, (Term) input.getInputListIndex(0), insert, out, null, preString, postString);
                         }
                     }
                 }
-                term.replaceVariables(variable, insert);
+                if(!alphaDOne)
+                    term.replaceVariables(variable, insert);
             } else if (term.getContentIndex(i) instanceof Variable && insert instanceof Term) {
                 if (((Variable) term.getContentIndex(i)).compare(variable))
                     term.setContentIndex(i, insert);
@@ -473,11 +576,19 @@ public class BetaReduction {
             out.getPanes().get(out.getPanes().size() - 1).setContent(new Text("beta reduction:\ninsert " + current + " into " + previous));
     }
 
-    private static void writeInnerBeta(Input input, Term innerTerm, LambdaExpression insert, Accordion out, TitledPane pane) {
+    private static void writeInnerBeta(Input input, Term innerTerm, LambdaExpression insert, Accordion out, TitledPane pane, String preString, String postString) {
         TextFlow textFlow = new TextFlow();
         textFlow.getChildren().addAll(new Text("beta reduction in inner Term:"), new Text(System.lineSeparator()));
 
-        String text = input.toString();
+        String text;
+        if(preString.equals(""))
+            if (postString.equals(""))
+                text = input.toString();
+            else
+                text = input.toString() + postString;
+        else
+            text = preString + input.toString() + postString;
+
         Text pre = new Text(text.substring(0, text.indexOf(innerTerm.toString())));
 
         int i = text.indexOf(innerTerm.toString());
@@ -508,7 +619,13 @@ public class BetaReduction {
                 replaceText1, replaceText2, replaceText3, replaceText4);
 
         if (pane == null)
-            out.getPanes().add(new TitledPane(input.toString(), textFlow));
+            if(preString.equals(""))
+                if (postString.equals(""))
+                    out.getPanes().add(new TitledPane(input.toString(), textFlow));
+                else
+                    out.getPanes().add(new TitledPane(input + postString, textFlow));
+            else
+                out.getPanes().add(new TitledPane(preString + input + postString, textFlow));
         else
             pane.setContent(textFlow);
     }
