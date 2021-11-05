@@ -1,5 +1,5 @@
 # Lambda-Calculus
-Lambda-Calculus is a program for calulating lambda terms and showing each beta reduction and alpha conversion step to reach the solution.
+Lambda-Calculus is a program for calculating lambda terms and showing each beta reduction and alpha conversion step to reach the solution.
 
 ## How to use
 ### Installation
