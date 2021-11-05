@@ -1,6 +1,9 @@
 # Lambda-Calculus
 Lambda-Calculus is a program for calculating lambda terms and showing each beta reduction and alpha conversion step to reach the solution.
 
+![image](https://user-images.githubusercontent.com/60702381/140508078-fe7a0940-a25e-4bc1-b735-c95d753de262.png)
+
+
 ## How to use
 ### Installation
 Go to [latest release](https://github.com/ePro-lab/Lambda-Calculus/releases/latest) and choose one of the following
